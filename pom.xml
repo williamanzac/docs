@@ -78,7 +78,6 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<finalName>${project.name}-${project.version}-${buildNumber}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>

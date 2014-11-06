@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
-
 import anzac.peripherals.help.model.ApiClass;
 import anzac.peripherals.help.model.ApiEvent;
 import anzac.peripherals.help.model.ApiMethod;
@@ -18,6 +16,7 @@ import anzac.peripherals.help.model.ApiParameter;
 import com.sun.javadoc.AnnotationDesc;
 import com.sun.javadoc.AnnotationDesc.ElementValuePair;
 import com.sun.javadoc.ClassDoc;
+import com.sun.javadoc.FieldDoc;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.Parameter;
 import com.sun.javadoc.RootDoc;
@@ -47,6 +46,8 @@ public class HelpGenerator {
 		}
 		apiClass.methods.addAll(generateMethodModel(classDoc));
 		apiClass.events.addAll(generateEventModel(classDoc));
+		apiClass.description = classDoc.inlineTags();
+		apiClass.name = classDoc.simpleTypeName();
 		return apiClass;
 	}
 
@@ -78,7 +79,7 @@ public class HelpGenerator {
 		}
 		final ApiMethod method = new ApiMethod();
 		method.name = methodDoc.name();
-		method.description = methodDoc.commentText();
+		method.description = methodDoc.inlineTags();
 		method.returnType = javaToLUA(methodDoc.returnType());
 		method.parameters.addAll(generateParameterModel(methodDoc));
 		return method;
@@ -103,9 +104,12 @@ public class HelpGenerator {
 		String eventType = null;
 		for (final AnnotationDesc annotationDesc : methodDoc.annotations()) {
 			if (annotationDesc.annotationType().toString().contains("Event")) {
+				HelpDoclet.log("event method: " + methodDoc.qualifiedName());
 				for (final ElementValuePair pair : annotationDesc.elementValues()) {
+					HelpDoclet.log("pair: " + pair.element().name() + ", " + pair.value().toString());
 					if (pair.element().name().equals("value")) {
-						eventType = ((Enum<?>) pair.value().value()).name();
+						final FieldDoc fieldDoc = (FieldDoc) pair.value().value();
+						eventType = fieldDoc.name();
 						break;
 					}
 				}
@@ -117,7 +121,7 @@ public class HelpGenerator {
 		}
 		final ApiEvent event = new ApiEvent();
 		event.name = eventType;
-		event.description = methodDoc.commentText();
+		event.description = methodDoc.inlineTags();
 		event.parameters.addAll(generateParameterModel(methodDoc));
 		return event;
 	}
@@ -146,16 +150,16 @@ public class HelpGenerator {
 
 	private static ApiParameter toApiParameter(Tag tag) {
 		final ApiParameter apiParameter = new ApiParameter();
-		final String[] strings = StringUtils.split(tag.text(), "\n");
-		final String name = StringUtils.trim(strings[0]);
+		final String[] strings = tag.text().split("\n");
+		final String name = strings[0].trim();
 		apiParameter.name = name;
 		if (strings.length > 1) {
-			apiParameter.description = tag.text();
+			apiParameter.description = tag.inlineTags();
 		}
 		return apiParameter;
 	}
 
-	private static String javaToLUA(final Type type) {
+	protected static String javaToLUA(final Type type) {
 		final String typeName = type.simpleTypeName();
 		if ("map".equalsIgnoreCase(typeName)) {
 			return "table";
@@ -164,8 +168,20 @@ public class HelpGenerator {
 			return "number";
 		} else if ("void".equalsIgnoreCase(typeName)) {
 			return "";
-		} else if (StringUtils.isNotBlank(type.dimension())) {
+		} else if (type.dimension() != null && !type.dimension().isEmpty()) {
 			return "array";
+		}
+
+		// boolean, string
+		return typeName.toLowerCase();
+	}
+
+	protected static String javaToLUA(final String typeName) {
+		if ("map".equalsIgnoreCase(typeName)) {
+			return "table";
+		} else if ("long".equalsIgnoreCase(typeName) || "int".equalsIgnoreCase(typeName)
+				|| "double".equalsIgnoreCase(typeName) || "float".equalsIgnoreCase(typeName)) {
+			return "number";
 		}
 
 		// boolean, string
