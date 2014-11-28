@@ -1,17 +1,12 @@
-package anzac.peripherals.help;
+package anzac.peripherals.model;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import anzac.peripherals.help.model.ApiClass;
-import anzac.peripherals.help.model.ApiEvent;
-import anzac.peripherals.help.model.ApiMethod;
-import anzac.peripherals.help.model.ApiParameter;
+import anzac.peripherals.wiki.WikiDoclet;
 
 import com.sun.javadoc.AnnotationDesc;
 import com.sun.javadoc.AnnotationDesc.ElementValuePair;
@@ -23,18 +18,40 @@ import com.sun.javadoc.RootDoc;
 import com.sun.javadoc.Tag;
 import com.sun.javadoc.Type;
 
-public class HelpGenerator {
-	protected static List<ApiClass> generateModel(final RootDoc rootDoc) {
-		final List<ApiClass> classes = new ArrayList<ApiClass>();
+public class ModelGenerator {
+
+	public static final Map<String, ApiClass> apiClasses = new HashMap<>();
+	public static final Map<String, Block> blockClasses = new HashMap<>();
+	public static final Map<String, Item> itemClasses = new HashMap<>();
+
+	public static void generateAPIModel(final RootDoc rootDoc) {
 		for (final ClassDoc classDoc : rootDoc.classes()) {
 			for (final AnnotationDesc annotationDesc : classDoc.annotations()) {
 				if (annotationDesc.annotationType().toString().endsWith("Peripheral")) {
 					final ApiClass processClass = toApiClass(classDoc, annotationDesc);
-					classes.add(processClass);
+					apiClasses.put(processClass.name, processClass);
 				}
 			}
 		}
-		return classes;
+	}
+
+	public static void generateBlockModel(final RootDoc rootDoc) {
+		for (final ClassDoc classDoc : rootDoc.classes()) {
+			for (final AnnotationDesc annotationDesc : classDoc.annotations()) {
+				if (annotationDesc.annotationType().toString().endsWith("BlockInfo")) {
+					final Block processClass = toBlock(classDoc, annotationDesc);
+					blockClasses.put(processClass.name, processClass);
+				}
+			}
+		}
+	}
+
+	private static Block toBlock(final ClassDoc classDoc, final AnnotationDesc annotationDesc) {
+		final Block block = new Block();
+		block.description = classDoc.inlineTags();
+		block.name = classDoc.simpleTypeName();
+		block.peripheral = apiClasses.get(block.name + "TileEntity");
+		return block;
 	}
 
 	private static ApiClass toApiClass(final ClassDoc classDoc, final AnnotationDesc annotationDesc) {
@@ -48,6 +65,7 @@ public class HelpGenerator {
 		apiClass.events.addAll(generateEventModel(classDoc));
 		apiClass.description = classDoc.inlineTags();
 		apiClass.name = classDoc.simpleTypeName();
+		apiClass.fullName = classDoc.qualifiedTypeName();
 		return apiClass;
 	}
 
@@ -82,6 +100,14 @@ public class HelpGenerator {
 		method.description = methodDoc.inlineTags();
 		method.returnType = javaToLUA(methodDoc.returnType());
 		method.parameters.addAll(generateParameterModel(methodDoc));
+		method.firstLine = methodDoc.firstSentenceTags();
+		for (final Tag tag : methodDoc.tags()) {
+			final String tagName = tag.name();
+			if (tagName.equals("@return")) {
+				method.returnDescription = tag.inlineTags();
+				break;
+			}
+		}
 		return method;
 	}
 
@@ -104,9 +130,9 @@ public class HelpGenerator {
 		String eventType = null;
 		for (final AnnotationDesc annotationDesc : methodDoc.annotations()) {
 			if (annotationDesc.annotationType().toString().contains("Event")) {
-				HelpDoclet.log("event method: " + methodDoc.qualifiedName());
+				WikiDoclet.log("event method: " + methodDoc.qualifiedName());
 				for (final ElementValuePair pair : annotationDesc.elementValues()) {
-					HelpDoclet.log("pair: " + pair.element().name() + ", " + pair.value().toString());
+					WikiDoclet.log("pair: " + pair.element().name() + ", " + pair.value().toString());
 					if (pair.element().name().equals("value")) {
 						final FieldDoc fieldDoc = (FieldDoc) pair.value().value();
 						eventType = fieldDoc.name();
