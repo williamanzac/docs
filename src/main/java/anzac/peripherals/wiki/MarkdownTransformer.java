@@ -50,7 +50,7 @@ public class MarkdownTransformer implements Transformer {
 		}
 
 		if (!apiClass.events.isEmpty()) {
-			builder.append("\n###Event Detail###\n");
+			builder.append("\n###Event Detail###\n\n");
 			for (final ApiEvent event : apiClass.events) {
 				builder.append(transformEventDetail(event, apiClass.name)).append("\n");
 			}
@@ -66,7 +66,7 @@ public class MarkdownTransformer implements Transformer {
 	@Override
 	public String transformEventDetail(ApiEvent apiEvent, String className) {
 		final StringBuilder builder = new StringBuilder();
-		builder.append("<a name=\"" + apiEvent.name + "\"></a>\n");
+		builder.append("<a name=\"" + apiEvent.name + "\"></a>\n\n");
 		builder.append("####" + apiEvent.name + "####\n");
 		builder.append(processText(className, apiEvent.description)).append("\n");
 		if (!apiEvent.parameters.isEmpty()) {
@@ -126,7 +126,7 @@ public class MarkdownTransformer implements Transformer {
 	public String transformBlock(final Block block) {
 		final StringBuilder builder = new StringBuilder();
 		if (block.peripheral != null) {
-			builder.append(processText(block.peripheral.name, block.description)).append("\n");
+			builder.append(processText(block.peripheral.name, block.peripheral.description)).append("\n");
 		}
 		if (!block.items.isEmpty()) {
 			builder.append("\n");
@@ -251,31 +251,39 @@ public class MarkdownTransformer implements Transformer {
 
 	protected static String className(final ApiClass apiClass) {
 		final String typeName = apiClass.name;
-		final int index = typeName.indexOf("Peripheral");
-		final String fileName = typeName.substring(0, index);
-		return fileName;
+		int index = typeName.indexOf("Peripheral");
+		if (index < 0) {
+			index = typeName.indexOf("TileEntity");
+		}
+		if (index > 0) {
+			final String fileName = typeName.substring(0, index);
+			return fileName;
+		}
+		WikiDoclet.log("could not get class name for: " + typeName);
+		return typeName;
 	}
 
 	private static String classFullFileName(final ApiClass apiClass) {
-		final String lowerDash = lowerDash(className(apiClass));
-		final String pkg = apiClass.fullName.replace("anzac.peripherals", "anzac-peripherals")
-				.replace("peripheral.", "blocks.").replace(apiClass.name, lowerDash).replaceAll("\\.", "/");
-		return pkg;
+		// final String lowerDash = lowerDash(className(apiClass));
+		// final String pkg = apiClass.fullName.replace("anzac.peripherals", "anzac-peripherals")
+		// .replace("peripheral.", "blocks.").replace(apiClass.name, lowerDash).replaceAll("\\.", "/");
+		// return pkg;
+		return className(apiClass) + ".md";
 	}
 
-	private static String lowerDash(final String input) {
-		if (input == null) {
-			return null;
-		}
-		final StringBuilder builder = new StringBuilder();
-		for (int i = 0; i < input.length(); i++) {
-			char c = input.charAt(i);
-			if (i > 0 && Character.isUpperCase(c)) {
-				builder.append("-");
-			}
-			c = Character.toLowerCase(c);
-			builder.append(c);
-		}
-		return builder.toString();
-	}
+	// private static String lowerDash(final String input) {
+	// if (input == null) {
+	// return null;
+	// }
+	// final StringBuilder builder = new StringBuilder();
+	// for (int i = 0; i < input.length(); i++) {
+	// char c = input.charAt(i);
+	// if (i > 0 && Character.isUpperCase(c)) {
+	// builder.append("-");
+	// }
+	// c = Character.toLowerCase(c);
+	// builder.append(c);
+	// }
+	// return builder.toString();
+	// }
 }
