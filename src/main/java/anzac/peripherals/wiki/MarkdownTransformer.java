@@ -16,8 +16,6 @@ import com.sun.javadoc.Tag;
 
 public class MarkdownTransformer implements Transformer {
 
-	private static int baseUrl;
-
 	@Override
 	public String transformClass(final ApiClass apiClass) {
 		final StringBuilder builder = new StringBuilder();
@@ -209,7 +207,7 @@ public class MarkdownTransformer implements Transformer {
 					builder.append(className(apiClass));
 					builder.append(".");
 				} else {
-					builder.append(baseUrl + classFullFileName(apiClass));
+					builder.append(classFullFileName(apiClass));
 				}
 			} else {
 				apiClass = ModelGenerator.apiClasses.get(name);
@@ -242,7 +240,7 @@ public class MarkdownTransformer implements Transformer {
 		final ApiClass apiClass = ModelGenerator.apiClasses.get(text);
 		if (apiClass != null) {
 			if (link) {
-				return baseUrl + classFullFileName(apiClass);
+				return classFullFileName(apiClass);
 			}
 			return className(apiClass);
 		}
@@ -268,7 +266,7 @@ public class MarkdownTransformer implements Transformer {
 		// final String pkg = apiClass.fullName.replace("anzac.peripherals", "anzac-peripherals")
 		// .replace("peripheral.", "blocks.").replace(apiClass.name, lowerDash).replaceAll("\\.", "/");
 		// return pkg;
-		return className(apiClass) + ".md";
+		return className(apiClass);
 	}
 
 	// private static String lowerDash(final String input) {
