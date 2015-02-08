@@ -62,7 +62,7 @@ public class MarkdownTransformer implements Transformer {
 	}
 
 	@Override
-	public String transformEventDetail(ApiEvent apiEvent, String className) {
+	public String transformEventDetail(final ApiEvent apiEvent, final String className) {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("<a name=\"" + apiEvent.name + "\"></a>\n\n");
 		builder.append("####" + apiEvent.name + "####\n");
@@ -90,7 +90,7 @@ public class MarkdownTransformer implements Transformer {
 	}
 
 	@Override
-	public String transformMethodDetail(ApiMethod apiMethod, String className) {
+	public String transformMethodDetail(final ApiMethod apiMethod, final String className) {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("<a name=\"" + toSignature(apiMethod) + "\"></a>\n");
 		builder.append("\n####" + apiMethod.name + "####\n");
@@ -146,9 +146,13 @@ public class MarkdownTransformer implements Transformer {
 	}
 
 	@Override
-	public String transformItem(Item item) {
-		// TODO Auto-generated method stub
-		return null;
+	public String transformItem(final Item item) {
+		final StringBuilder builder = new StringBuilder();
+		builder.append(processText(item.name, item.description)).append("\n");
+		builder.append("\n");
+		builder.append("###Recipe###\n");
+		// builder.append(transformItem(block.items.get(0))).append("\n");
+		return builder.toString();
 	}
 
 	private String processText(final String name, final Tag[] tags) {
@@ -160,7 +164,7 @@ public class MarkdownTransformer implements Transformer {
 					strBuilder.append(text);
 				} else if ("@link".equals(tag.name())) {
 					strBuilder.append(" [`").append(processSig(name, text, false)).append("`](")
-							.append(processSig(name, text, true)).append(") ");
+					.append(processSig(name, text, true)).append(") ");
 				} else if ("@code".equals(tag.name())) {
 					strBuilder.append(" `").append(processSig(name, text, false)).append("` ");
 				}

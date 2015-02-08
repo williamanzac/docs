@@ -46,6 +46,25 @@ public class ModelGenerator {
 		}
 	}
 
+	public static void generateItemModel(final RootDoc rootDoc) {
+		for (final ClassDoc classDoc : rootDoc.classes()) {
+			for (final AnnotationDesc annotationDesc : classDoc.annotations()) {
+				if (annotationDesc.annotationType().toString().endsWith("ItemInfo")) {
+					final Item processClass = toItem(classDoc, annotationDesc);
+					itemClasses.put(processClass.name, processClass);
+				}
+			}
+		}
+	}
+
+	private static Item toItem(final ClassDoc classDoc, final AnnotationDesc annotationDesc) {
+		final Item item = new Item();
+		item.description = classDoc.inlineTags();
+		item.name = classDoc.simpleTypeName();
+		// block.peripheral = apiClasses.get(block.name + "TileEntity");
+		return item;
+	}
+
 	private static Block toBlock(final ClassDoc classDoc, final AnnotationDesc annotationDesc) {
 		final Block block = new Block();
 		block.description = classDoc.inlineTags();

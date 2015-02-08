@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.net.MalformedURLException;
 
 import anzac.peripherals.model.Block;
+import anzac.peripherals.model.Item;
 import anzac.peripherals.model.ModelGenerator;
 
 import com.sun.javadoc.DocErrorReporter;
@@ -26,11 +27,27 @@ public class WikiDoclet {
 		}
 		ModelGenerator.generateAPIModel(rootDoc);
 		ModelGenerator.generateBlockModel(rootDoc);
+		ModelGenerator.generateItemModel(rootDoc);
 		MarkdownTransformer transformer = new MarkdownTransformer();
 		for (final Block block : ModelGenerator.blockClasses.values()) {
 			try {
 				final String document = transformer.transformBlock(block);
 				final String classFileName = blockName(block) + ".md";
+				final File file = new File(helpDir, classFileName);
+				rootDoc.printNotice(file.getAbsolutePath());
+				try (BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
+					out.write(document);
+				}
+			} catch (final Exception e) {
+				e.printStackTrace();
+				rootDoc.printError(e.getMessage());
+				return false;
+			}
+		}
+		for (final Item item : ModelGenerator.itemClasses.values()) {
+			try {
+				final String document = transformer.transformItem(item);
+				final String classFileName = itemName(item) + ".md";
 				final File file = new File(helpDir, classFileName);
 				rootDoc.printNotice(file.getAbsolutePath());
 				try (BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
@@ -76,5 +93,9 @@ public class WikiDoclet {
 
 	private static String blockName(final Block block) {
 		return block.name.replaceAll("\\s+", "");
+	}
+
+	private static String itemName(final Item item) {
+		return item.name.replaceAll("\\s+", "");
 	}
 }
