@@ -47,14 +47,14 @@ public class HelpDoclet {
 
 	private static void processOptions(final String[][] options) throws MalformedURLException {
 		for (final String[] strings : options) {
-			if ("-dir".equals(strings[0])) {
+			if ("-d".equals(strings[0])) {
 				helpDir = new File(strings[1]);
 			}
 		}
 	}
 
 	public static int optionLength(final String option) {
-		if ("-dir".equals(option)) {
+		if ("-d".equals(option)) {
 			return 2;
 		}
 		return 0;

@@ -3,6 +3,8 @@ package anzac.peripherals.wiki;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
+
 import anzac.peripherals.Transformer;
 import anzac.peripherals.model.ApiClass;
 import anzac.peripherals.model.ApiEvent;
@@ -28,7 +30,7 @@ public class MarkdownTransformer implements Transformer {
 		builder.append("\n###Method Summary###\n");
 		builder.append("<table>\n");
 		builder.append("<tr>\n");
-		builder.append("<th>Return Type</th>\n<th>Method and Description</th>\n");
+		builder.append("<th>Method</th>\n<th>Description</th>\n");
 		builder.append("</tr>\n");
 		for (final ApiMethod apiMethod : apiClass.methods) {
 			builder.append("<tr>\n");
@@ -42,13 +44,13 @@ public class MarkdownTransformer implements Transformer {
 				builder.append("* ").append(transformEventSummary(event, apiClass.name)).append("\n");
 			}
 		}
-		builder.append("\n###Method Detail###\n");
+		builder.append("\n###Method Details###\n");
 		for (final ApiMethod apiMethod : apiClass.methods) {
 			builder.append(transformMethodDetail(apiMethod, apiClass.name)).append("\n");
 		}
 
 		if (!apiClass.events.isEmpty()) {
-			builder.append("\n###Event Detail###\n\n");
+			builder.append("\n###Event Details###\n\n");
 			for (final ApiEvent event : apiClass.events) {
 				builder.append(transformEventDetail(event, apiClass.name)).append("\n");
 			}
@@ -65,7 +67,7 @@ public class MarkdownTransformer implements Transformer {
 	public String transformEventDetail(final ApiEvent apiEvent, final String className) {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("<a name=\"" + apiEvent.name + "\"></a>\n\n");
-		builder.append("####" + apiEvent.name + "####\n");
+		builder.append("\n<code>" + toSignatureWithReturn(apiEvent) + "</code>\n");
 		builder.append(processText(className, apiEvent.description)).append("\n");
 		if (!apiEvent.parameters.isEmpty()) {
 			builder.append("<dl>\n");
@@ -82,9 +84,9 @@ public class MarkdownTransformer implements Transformer {
 	public String transformMethodSummary(final ApiMethod apiMethod, final String className) {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("<tr>\n");
-		builder.append("<td>" + apiMethod.returnType + "</td>\n");
 		builder.append("<td><a href=\"#" + toSignature(apiMethod) + "\"><code>" + toSignature(apiMethod)
-				+ "</code></a> " + processText(className, apiMethod.firstLine) + "</td>\n");
+				+ "</code></a></td>\n");
+		builder.append("<td>" + processText(className, apiMethod.firstLine) + "</td>\n");
 		builder.append("</tr>\n");
 		return builder.toString();
 	}
@@ -93,7 +95,7 @@ public class MarkdownTransformer implements Transformer {
 	public String transformMethodDetail(final ApiMethod apiMethod, final String className) {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("<a name=\"" + toSignature(apiMethod) + "\"></a>\n");
-		builder.append("\n####" + apiMethod.name + "####\n");
+		builder.append("<code>" + toSignatureWithReturn(apiMethod) + "</code>\n");
 		builder.append(processText(className, apiMethod.description)).append("\n");
 		final boolean notVoid = apiMethod != null && !apiMethod.returnType.isEmpty();
 		final boolean hasParams = apiMethod.parameters != null && !apiMethod.parameters.isEmpty();
@@ -164,7 +166,7 @@ public class MarkdownTransformer implements Transformer {
 					strBuilder.append(text);
 				} else if ("@link".equals(tag.name())) {
 					strBuilder.append(" [`").append(processSig(name, text, false)).append("`](")
-					.append(processSig(name, text, true)).append(") ");
+							.append(processSig(name, text, true)).append(") ");
 				} else if ("@code".equals(tag.name())) {
 					strBuilder.append(" `").append(processSig(name, text, false)).append("` ");
 				}
@@ -190,12 +192,14 @@ public class MarkdownTransformer implements Transformer {
 		return builder.toString();
 	}
 
-	//
-	// public String toSignature(final ApiEvent apiEvent) {
-	// final StringBuilder builder = new StringBuilder();
-	// builder.append("\"").append(apiEvent.name).append("\"");
-	// return builder.toString();
-	// }
+	public String toSignatureWithReturn(final ApiMethod apiMethod) {
+		final StringBuilder builder = new StringBuilder();
+		if (StringUtils.isNotBlank(apiMethod.returnType)) {
+			builder.append(apiMethod.returnType).append(" ");
+		}
+		builder.append(toSignature(apiMethod));
+		return builder.toString();
+	}
 
 	private String processSig(final String name, final String text, final boolean link) {
 		final StringBuilder builder = new StringBuilder();

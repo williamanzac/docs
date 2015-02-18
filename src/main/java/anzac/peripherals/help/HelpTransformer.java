@@ -3,6 +3,8 @@ package anzac.peripherals.help;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
+
 import anzac.peripherals.Transformer;
 import anzac.peripherals.model.ApiClass;
 import anzac.peripherals.model.ApiEvent;
@@ -36,22 +38,13 @@ public class HelpTransformer implements Transformer {
 
 	@Override
 	public String transformParameter(final ApiParameter apiParameter, final String className) {
-		return apiParameter.type + " " + apiParameter.name + " " + processText(className, apiParameter.description);
+		return apiParameter.name + " " + processText(className, apiParameter.description);
 	}
 
 	public String toSignature(final ApiMethod apiMethod) {
 		final StringBuilder builder = new StringBuilder();
 		builder.append(apiMethod.name).append("(");
-		if (!apiMethod.parameters.isEmpty()) {
-			boolean first = true;
-			for (final ApiParameter parameter : apiMethod.parameters) {
-				if (!first) {
-					builder.append(", ");
-				}
-				first = false;
-				builder.append(parameter);
-			}
-		}
+		builder.append(StringUtils.join(apiMethod.parameters, ","));
 		builder.append(")");
 		return builder.toString();
 	}
@@ -159,7 +152,7 @@ public class HelpTransformer implements Transformer {
 			builder.append(" ").append(processText(className, apiEvent.description));
 		}
 		if (!apiEvent.parameters.isEmpty()) {
-			builder.append("\n    Arguments are: ");
+			builder.append("\n    Arguments: ");
 			boolean first = true;
 			for (final ApiParameter parameter : apiEvent.parameters) {
 				if (!first) {
@@ -181,15 +174,18 @@ public class HelpTransformer implements Transformer {
 	@Override
 	public String transformMethodDetail(ApiMethod apiMethod, String className) {
 		final StringBuilder builder = new StringBuilder();
-		if (apiMethod.returnType != null && !apiMethod.returnType.isEmpty()) {
-			builder.append(apiMethod.returnType).append(" ");
-		}
+		// if (apiMethod.returnType != null && !apiMethod.returnType.isEmpty()) {
+		// builder.append(apiMethod.returnType).append(" ");
+		// }
 		builder.append(toSignature(apiMethod));
 		if (apiMethod.description != null) {
-			builder.append(" ").append(processText(className, apiMethod.description));
+			builder.append("\n    ").append(processText(className, apiMethod.description));
 		}
-		for (final ApiParameter parameter : apiMethod.parameters) {
-			builder.append("\n    ").append(transformParameter(parameter, className));
+		if (!apiMethod.parameters.isEmpty()) {
+			builder.append("\n    Arguments:");
+			for (final ApiParameter parameter : apiMethod.parameters) {
+				builder.append("\n        ").append(transformParameter(parameter, className));
+			}
 		}
 		return builder.toString();
 	}
