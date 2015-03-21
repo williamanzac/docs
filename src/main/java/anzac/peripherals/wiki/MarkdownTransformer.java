@@ -95,7 +95,7 @@ public class MarkdownTransformer implements Transformer {
 	public String transformMethodDetail(final ApiMethod apiMethod, final String className) {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("<a name=\"" + toSignature(apiMethod) + "\"></a>\n");
-		builder.append("<code>" + toSignatureWithReturn(apiMethod) + "</code>\n");
+		builder.append("<code>" + toSignatureWithReturn(apiMethod) + "</code><br/>\n");
 		builder.append(processText(className, apiMethod.description)).append("\n");
 		final boolean notVoid = apiMethod != null && !apiMethod.returnType.isEmpty();
 		final boolean hasParams = apiMethod.parameters != null && !apiMethod.parameters.isEmpty();
@@ -107,7 +107,7 @@ public class MarkdownTransformer implements Transformer {
 					builder.append(transformParameter(apiParameter, className)).append("\n");
 				}
 			}
-			if (notVoid) {
+			if (notVoid && apiMethod.returnDescription != null && apiMethod.returnDescription.length > 0) {
 				builder.append("<dt>Returns</dt>\n");
 				builder.append("<dd>" + processText(className, apiMethod.returnDescription) + "</dd>\n");
 			}
