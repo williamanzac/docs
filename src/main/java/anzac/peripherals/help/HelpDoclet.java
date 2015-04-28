@@ -30,7 +30,7 @@ public class HelpDoclet {
 		for (final ApiClass api : ModelGenerator.apiClasses.values()) {
 			try {
 				final String document = transformer.transformClass(api);
-				final String classFileName = api.type + "api";
+				final String classFileName = api.type + "s";
 				final File file = new File(helpDir, classFileName);
 				rootDoc.printNotice(file.getAbsolutePath());
 				try (BufferedWriter out = new BufferedWriter(new FileWriter(file))) {

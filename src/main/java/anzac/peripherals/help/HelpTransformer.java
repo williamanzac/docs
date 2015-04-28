@@ -144,23 +144,20 @@ public class HelpTransformer implements Transformer {
 	@Override
 	public String transformEventDetail(ApiEvent apiEvent, String className) {
 		final StringBuilder builder = new StringBuilder();
-		if (apiEvent.returnType != null && !apiEvent.returnType.isEmpty()) {
-			builder.append(apiEvent.returnType).append(" ");
-		}
+		// if (apiEvent.returnType != null && !apiEvent.returnType.isEmpty()) {
+		// builder.append(apiEvent.returnType).append(" ");
+		// }
 		builder.append(toSignature(apiEvent));
 		if (apiEvent.description != null) {
 			builder.append(" ").append(processText(className, apiEvent.description));
 		}
 		if (!apiEvent.parameters.isEmpty()) {
-			builder.append("\n    Arguments: ");
-			boolean first = true;
-			for (final ApiParameter parameter : apiEvent.parameters) {
-				if (!first) {
-					builder.append(", ");
-				}
-				first = false;
-				builder.append(parameter);
+			if (apiEvent.parameters.size() > 1) {
+				builder.append("\n  Arguments are ");
+			} else {
+				builder.append("\n  Argument is ");
 			}
+			builder.append(StringUtils.join(apiEvent.parameters, ","));
 		}
 		return builder.toString();
 	}
@@ -179,12 +176,12 @@ public class HelpTransformer implements Transformer {
 		// }
 		builder.append(toSignature(apiMethod));
 		if (apiMethod.description != null) {
-			builder.append("\n    ").append(processText(className, apiMethod.description));
+			builder.append("\n  ").append(processText(className, apiMethod.description));
 		}
 		if (!apiMethod.parameters.isEmpty()) {
-			builder.append("\n    Arguments:");
+			builder.append("\n  Arguments:");
 			for (final ApiParameter parameter : apiMethod.parameters) {
-				builder.append("\n        ").append(transformParameter(parameter, className));
+				builder.append("\n    ").append(transformParameter(parameter, className));
 			}
 		}
 		return builder.toString();
